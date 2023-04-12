@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc",
+    "build": "esbuild src/app.ts --platform=node --target=node16 --format=cjs --bundle --minify --main-fields=main --outfile=dist/app.js --external:pg-native --external:sharp",
     "server": "node dist/app.js",
     "start": "npm run build && npm run server"
   },

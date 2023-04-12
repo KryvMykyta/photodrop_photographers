@@ -1,4 +1,4 @@
-import { Request, RequestHandler, Response } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import { PhotographersRepository } from "./../repositories/PhotographersRepository";
 import { ErrorGenerator } from "./../utils/ErrorGenerator";
 import { TokenGenerator } from "./../utils/TokenGenerator";
@@ -14,7 +14,7 @@ export class AuthMiddlewareClass {
     this.tokenGenerator = tokenGenerator;
   }
 
-  public isAuthorized: RequestHandler = (req, res, next) => {
+  public isAuthorized: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = req.header("Authorization")?.split(" ")[1];
       if (!token) {
