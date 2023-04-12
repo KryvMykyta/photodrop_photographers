@@ -1,3 +1,4 @@
+import { PhotosType } from './../schemas/photoSchema';
 import { Request, Response, Router } from "express";
 import { AuthMiddlewareClass } from "./../middlewares/AuthMiddleware";
 import { PhotographersRepository } from "./../repositories/PhotographersRepository";
@@ -12,6 +13,10 @@ import { PhotoEditor } from "utils/PhotoEditor";
 type Images = {
   base64image: string;
 }[];
+
+interface IResponsePhotos extends PhotosType {
+  url:string
+}
 
 export class PhotographersController {
   router: Router;
@@ -74,7 +79,12 @@ export class PhotographersController {
         throw new ErrorGenerator(403, "Forbidden");
       }
       const photos = await this.photoRepository.getAlbumPhotos(albumID)
-      return res.status(200).send(photos);
+      const response: IResponsePhotos[] = []
+      for(let photo of photos) {
+        const url = this.s3Repository.getPhotoUrl(photo.photoID,"_resize")
+        response.push(Object.assign(photo, {url})) 
+      }
+      return res.status(200).send(response);
     } catch (err) {
       console.log(err);
       if (err instanceof ErrorGenerator) {

@@ -24,19 +24,14 @@ export class S3Repository {
     await this.S3Instance.putObject(params).promise();
   };
 
-  // public createPost = async (type: string) => {
-  //   const key = uuidv4()
-  //   const params = {
-  //     Bucket: this.bucketName,
-  //     Fields: {
-  //       key: `${key}.${type}`, 
-  //     },
-  //     Expires: 60,
-  //     Conditions: [
-  //       ['content-length-range', 0, 100000000], // 100 Mb
-  //       {'acl': 'public-read'}
-  //   ]
-  //   };
-  //   return this.S3Instance.createPresignedPost(params)
-  // }
+  public getPhotoUrl = (photoKey: string, type: string) => {
+    const requestKey = photoKey.replace('.', `${type}.`)
+    const params = {
+      Bucket: this.bucketName,
+      Key: requestKey,
+      Expires: 60,
+    }
+    return this.S3Instance.getSignedUrl('getObject',params)
+  }
+
 }
