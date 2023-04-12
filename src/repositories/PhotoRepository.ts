@@ -30,13 +30,16 @@ export class PhotoRepository {
         return true
     }
 
-    public addUser = async (photoID: string, phoneNumber: string) => {
-        // console.log(`update photos set people = array_append(people, '${phoneNumber}') where photoid = '${photoID}'`)
+    public addUserToPhoto = async (photoID: string, phoneNumber: string) => {
         await this.db.execute(sql`update photos set people = array_append(people, ${phoneNumber}) where photoid = ${photoID}`)
     }
 
     public getUsersPhoto = async (phoneNumber: string) => {
         return (await this.db.execute(sql`select * from photos where ${phoneNumber} = any (people);`)).rows
+    }
+
+    public getAlbumPhotos = async (albumID: string) => {
+        return await this.db.select().from(photos).where(eq(photos.albumID,albumID))
     }
 
 }

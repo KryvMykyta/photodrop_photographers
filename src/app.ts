@@ -17,7 +17,7 @@ import { PhotoEditor } from "./utils/PhotoEditor";
 const app = express()
 const PORT = 3000
 
-app.use(express.json())
+app.use(express.json({limit: '300mb'}))
 app.use(cors())
 
 AWS.config.update({
@@ -26,6 +26,7 @@ AWS.config.update({
     secretAccessKey: process.env.AWS_SECRET_KEY as string,
     region: 'eu-central-1'
 })
+
 const S3Instance = new AWS.S3()
 
 const photographersPool = new Pool({

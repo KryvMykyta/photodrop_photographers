@@ -1,5 +1,4 @@
 import sharp from "sharp";
-import fs from "fs";
 
 export class PhotoEditor {
   public resizePicture = async (bufferImage: Buffer) => {
@@ -8,8 +7,11 @@ export class PhotoEditor {
   };
 
   public addWatermark = async (bufferImage: Buffer) => {
+    const image = sharp(bufferImage)
+    const metadata = await image.metadata()
+    const watermarkResized = await sharp('water.png').resize(metadata.width, metadata.height).png().toBuffer()
     const watermarkPhoto = await sharp(bufferImage)
-      .composite([{ input: "water.png", tile: true,  }])
+      .composite([{ input: watermarkResized, tile: true, }])
       .toBuffer();
     return watermarkPhoto;
   };

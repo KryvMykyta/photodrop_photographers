@@ -17,17 +17,11 @@ const bucketParams = {
 
 const params = {
   Bucket: "photodropbucketkryv",
-  Key: "3d100f5b-1f82-4440-916a-f8704fe271d3_water_resize.jpeg",
+  Key: "6a5cd8f3-578a-4d67-8403-a378d25763d4_water.jpeg",
   Expires:60
 };
 
-// S3Instance.getObject(params, (err, data) => {
-//   if (err) {
-//     console.log(err, err.stack);
-//   } else {
-//     console.log(data);
-//   }
-// });
+
 const main =async () => {
     console.log(S3Instance.getSignedUrl('getObject',params))
 }

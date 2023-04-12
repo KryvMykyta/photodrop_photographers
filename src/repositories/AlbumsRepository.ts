@@ -3,7 +3,6 @@ import { Pool } from "pg";
 import { eq, and} from "drizzle-orm/expressions";
 import { albums } from "./../schemas/albumsSchema";
 import { v4 as uuidv4 } from 'uuid';
-import { sql } from "drizzle-orm";
 
 
 export class AlbumsRepository {

@@ -56,19 +56,30 @@ export class PhotographersController {
       this.addUserToPhoto
     );
 
-    this.router.get("/getPhotos", this.getPhotos);
+    this.router.get("/photos", this.authMiddleware.isAuthorized, this.getAlbumPhotos);
   }
 
-  public getPhotos = async (
-    req: Request<{}, {}, {}, { phoneNumber: string }>,
+  public getAlbumPhotos = async (
+    req: Request<{}, {}, {login: string}, { albumID: string }>,
     res: Response
   ) => {
     try {
-      const { phoneNumber } = req.query;
-      const photos = await this.photoRepository.getUsersPhoto(phoneNumber);
+      const { login } = req.body;
+      const { albumID } = req.query;
+      const isUsersAlbum = await this.albumRepository.isUsersAlbum(
+        login,
+        albumID
+      );
+      if (!isUsersAlbum) {
+        throw new ErrorGenerator(403, "Forbidden");
+      }
+      const photos = await this.photoRepository.getAlbumPhotos(albumID)
       return res.status(200).send(photos);
     } catch (err) {
       console.log(err);
+      if (err instanceof ErrorGenerator) {
+        return res.status(err.status).send(err.message);
+      }
       return res.status(500).send("Server error");
     }
   };
@@ -140,7 +151,7 @@ export class PhotographersController {
           for (const photo of photos) {
             await this.s3Repository.loadPhoto(`${photoKey}${photo.keyAdd}`,photo.buffer, type)
           }
-          await this.photoRepository.addPhotoToAlbum(albumID, photoKey, login);
+          await this.photoRepository.addPhotoToAlbum(albumID, `${photoKey}.${type}`, login);
         })
       );
       return res.status(200).send("Successfully added photo to album");
@@ -172,7 +183,7 @@ export class PhotographersController {
       if (!isUsersPhoto) {
         throw new ErrorGenerator(403, "Forbidden");
       }
-      await this.photoRepository.addUser(photoID, phoneNumber);
+      await this.photoRepository.addUserToPhoto(photoID, phoneNumber);
       return res.status(200).send("Successfully added user to photo");
     } catch (err) {
       console.log(err);
