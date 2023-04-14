@@ -140,13 +140,13 @@ export class PhotographersController {
       {},
       {},
       { login: string; images: Images },
-      { albumID: string }
+      { albumID: string, type: string }
     >,
     res: Response
   ) => {
     try {
       const { login, images } = req.body;
-      const { albumID } = req.query;
+      const { albumID, type } = req.query;
       const isUsersAlbum = await this.albumRepository.isUsersAlbum(
         login,
         albumID
@@ -154,17 +154,20 @@ export class PhotographersController {
       if (!isUsersAlbum) {
         throw new ErrorGenerator(403, "Forbidden");
       }
-      await Promise.all(
-        images.map(async (img) => {
-          const photoKey = `${uuidv4()}`;
-          const {photos, type} = await this.photoEditor.createPackToLoad(img.base64image)
-          for (const photo of photos) {
-            await this.s3Repository.loadPhoto(`${photoKey}${photo.keyAdd}`,photo.buffer, type)
-          }
-          await this.photoRepository.addPhotoToAlbum(albumID, `${photoKey}.${type}`, login);
-        })
-      );
-      return res.status(200).send("Successfully added photo to album");
+      // await Promise.all(
+      //   images.map(async (img) => {
+      //     const photoKey = `${uuidv4()}`;
+      //     const {photos, type} = await this.photoEditor.createPackToLoad(img.base64image)
+      //     for (const photo of photos) {
+      //       await this.s3Repository.loadPhoto(`${photoKey}${photo.keyAdd}`,photo.buffer, type)
+      //     }
+      //     await this.photoRepository.addPhotoToAlbum(albumID, `${photoKey}.${type}`, login);
+      //   })
+      // );
+
+      const photoKey = `original/${login}/${albumID}/${uuidv4()}.${type}`
+
+      return res.status(200).send(this.s3Repository.getPresignedPost(photoKey));
     } catch (err) {
       console.log(err);
       if (err instanceof ErrorGenerator) {

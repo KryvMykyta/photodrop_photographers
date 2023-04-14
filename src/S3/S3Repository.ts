@@ -1,7 +1,6 @@
 import S3 from "aws-sdk/clients/s3";
 import dotenv from "dotenv";
 dotenv.config();
-import { v4 as uuidv4 } from 'uuid';
 
 export class S3Repository {
   S3Instance: S3;
@@ -23,6 +22,28 @@ export class S3Repository {
     console.log(params);
     await this.S3Instance.putObject(params).promise();
   };
+
+  public getPhoto = async (photoKey: string) => {
+    const params = {
+      Bucket: this.bucketName,
+      Key: photoKey,
+    }
+    return this.S3Instance.getObject(params)
+  }
+
+  public getPresignedPost = (photoKey: string) => {
+    const params = {
+      Bucket: this.bucketName,
+      Key: photoKey,
+      Expires: 300,
+      Conditions: [["content-length-range", 0, 10 * 1024 * 1024]],
+      Fields: {
+        acl: 'bucket-owner-full-control',
+        key: photoKey
+      },
+    }
+    return this.S3Instance.createPresignedPost(params)
+  }
 
   public getPhotoUrl = (photoKey: string, type: string) => {
     const requestKey = photoKey.replace('.', `${type}.`)
