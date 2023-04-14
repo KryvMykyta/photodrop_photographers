@@ -1,4 +1,4 @@
-import { PhotosType } from './../schemas/photoSchema';
+import { PhotosType } from "./../schemas/photoSchema";
 import { Request, Response, Router } from "express";
 import { AuthMiddlewareClass } from "./../middlewares/AuthMiddleware";
 import { PhotographersRepository } from "./../repositories/PhotographersRepository";
@@ -15,7 +15,7 @@ type Images = {
 }[];
 
 interface IResponsePhotos extends PhotosType {
-  url:string
+  url: string;
 }
 
 export class PhotographersController {
@@ -28,17 +28,14 @@ export class PhotographersController {
   s3Repository: S3Repository;
   photoEditor: PhotoEditor;
 
-  constructor(
-    path: string,
-    utilsClasses: UtilsClasses
-  ) {
+  constructor(path: string, utilsClasses: UtilsClasses) {
     (this.router = Router()), (this.path = path);
     this.authMiddleware = utilsClasses.authMiddleware;
     this.photographerRepository = utilsClasses.photographersRepository;
     this.albumRepository = utilsClasses.albumsRepository;
     this.photoRepository = utilsClasses.photosRepository;
     this.s3Repository = utilsClasses.s3Repository;
-    this.photoEditor = utilsClasses.photoEditor
+    this.photoEditor = utilsClasses.photoEditor;
 
     this.router.get(
       "/albums",
@@ -61,11 +58,15 @@ export class PhotographersController {
       this.addUserToPhoto
     );
 
-    this.router.get("/photos", this.authMiddleware.isAuthorized, this.getAlbumPhotos);
+    this.router.get(
+      "/photos",
+      this.authMiddleware.isAuthorized,
+      this.getAlbumPhotos
+    );
   }
 
   public getAlbumPhotos = async (
-    req: Request<{}, {}, {login: string}, { albumID: string }>,
+    req: Request<{}, {}, { login: string }, { albumID: string }>,
     res: Response
   ) => {
     try {
@@ -78,11 +79,13 @@ export class PhotographersController {
       if (!isUsersAlbum) {
         throw new ErrorGenerator(403, "Forbidden");
       }
-      const photos = await this.photoRepository.getAlbumPhotos(albumID)
-      const response: IResponsePhotos[] = []
-      for(let photo of photos) {
-        const url = this.s3Repository.getPhotoUrl(`thumbnail/${login}/${albumID}/${photo.photoID}`)
-        response.push(Object.assign(photo, {url})) 
+      const photos = await this.photoRepository.getAlbumPhotos(albumID);
+      const response: IResponsePhotos[] = [];
+      for (let photo of photos) {
+        const url = this.s3Repository.getPhotoUrl(
+          `thumbnail/${login}/${albumID}/${photo.photoID}`
+        );
+        response.push(Object.assign(photo, { url }));
       }
       return res.status(200).send(response);
     } catch (err) {
@@ -139,14 +142,14 @@ export class PhotographersController {
     req: Request<
       {},
       {},
-      { login: string},
-      { albumID: string, type: string }
+      { login: string; imageNames: string[] },
+      { albumID: string}
     >,
     res: Response
   ) => {
     try {
-      const { login } = req.body;
-      const { albumID, type } = req.query;
+      const { login, imageNames } = req.body;
+      const { albumID} = req.query;
       const isUsersAlbum = await this.albumRepository.isUsersAlbum(
         login,
         albumID
@@ -164,10 +167,13 @@ export class PhotographersController {
       //     await this.photoRepository.addPhotoToAlbum(albumID, `${photoKey}.${type}`, login);
       //   })
       // );
-
-      const photoKey = `original/${login}/${albumID}/${uuidv4()}.${type}`
-
-      return res.status(200).send(this.s3Repository.getPresignedPost(photoKey));
+      const urls: {}[] = [];
+      imageNames.forEach((imagename) => {
+        const type = imagename.split(".")[1];
+        const photoKey = `original/${login}/${albumID}/${uuidv4()}.${type}`;
+        urls.push(this.s3Repository.getPresignedPost(photoKey));
+      });
+      return res.status(200).send(urls);
     } catch (err) {
       console.log(err);
       if (err instanceof ErrorGenerator) {
