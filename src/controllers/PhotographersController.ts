@@ -81,7 +81,7 @@ export class PhotographersController {
       const photos = await this.photoRepository.getAlbumPhotos(albumID)
       const response: IResponsePhotos[] = []
       for(let photo of photos) {
-        const url = this.s3Repository.getPhotoUrl(photo.photoID,"_resize")
+        const url = this.s3Repository.getPhotoUrl(`thumbnail/${login}/${albumID}/${photo.photoID}`)
         response.push(Object.assign(photo, {url})) 
       }
       return res.status(200).send(response);

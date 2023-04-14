@@ -45,11 +45,10 @@ export class S3Repository {
     return this.S3Instance.createPresignedPost(params)
   }
 
-  public getPhotoUrl = (photoKey: string, type: string) => {
-    const requestKey = photoKey.replace('.', `${type}.`)
+  public getPhotoUrl = (photoKey: string) => {
     const params = {
       Bucket: this.bucketName,
-      Key: requestKey,
+      Key: photoKey,
       Expires: 60,
     }
     return this.S3Instance.getSignedUrl('getObject',params)
