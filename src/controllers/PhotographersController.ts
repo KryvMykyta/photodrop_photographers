@@ -139,13 +139,13 @@ export class PhotographersController {
     req: Request<
       {},
       {},
-      { login: string; images: Images },
+      { login: string},
       { albumID: string, type: string }
     >,
     res: Response
   ) => {
     try {
-      const { login, images } = req.body;
+      const { login } = req.body;
       const { albumID, type } = req.query;
       const isUsersAlbum = await this.albumRepository.isUsersAlbum(
         login,
