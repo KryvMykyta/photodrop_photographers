@@ -22,12 +22,9 @@ export class PhotoRepository {
         })
     }
 
-    public isUsersPhoto = async (login: string, photoID: string) => {
+    public getPhoto = async (login: string, photoID: string) => {
         const photo = await this.db.select().from(photos).where(and(eq(photos.photographerLogin,login),eq(photos.photoID, photoID)))
-        if (!photo) {
-            return false
-        }
-        return true
+        return photo
     }
 
     public addUserToPhoto = async (photoID: string, phoneNumber: string) => {

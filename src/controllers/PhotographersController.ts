@@ -63,7 +63,40 @@ export class PhotographersController {
       this.authMiddleware.isAuthorized,
       this.getAlbumPhotos
     );
+
+    this.router.get(
+      "/getPhoto",
+      this.authMiddleware.isAuthorized,
+      this.getPhoto
+    );
   }
+
+  public getPhoto = async (
+    req: Request<{}, {}, { login: string }, { photoID: string }>,
+    res: Response
+  ) => {
+    try {
+      const { login } = req.body;
+      const { photoID } = req.query;
+      const photoData = await this.photoRepository.getPhoto(
+        login,
+        photoID
+      );
+      if (!photoData) {
+        throw new ErrorGenerator(403, "Forbidden");
+      }
+      const url = this.s3Repository.getPhotoUrl(
+        `original/${login}/${photoData[0].albumID}/${photoID}`
+      );
+      return res.status(200).send(url);
+    } catch (err) {
+      console.log(err);
+      if (err instanceof ErrorGenerator) {
+        return res.status(err.status).send(err.message);
+      }
+      return res.status(500).send("Server error");
+    }
+  };
 
   public getAlbumPhotos = async (
     req: Request<{}, {}, { login: string }, { albumID: string }>,
@@ -195,11 +228,11 @@ export class PhotographersController {
     try {
       const { login } = req.body;
       const { photoID, phoneNumber } = req.query;
-      const isUsersPhoto = await this.photoRepository.isUsersPhoto(
+      const photoData = await this.photoRepository.getPhoto(
         login,
         photoID
       );
-      if (!isUsersPhoto) {
+      if (!photoData) {
         throw new ErrorGenerator(403, "Forbidden");
       }
       await this.photoRepository.addUserToPhoto(photoID, phoneNumber);
