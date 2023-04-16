@@ -28,7 +28,7 @@ export class PhotoRepository {
     }
 
     public addUserToPhoto = async (photoID: string, phoneNumber: string) => {
-        await this.db.execute(sql`update photos set people = array_append(people, ${phoneNumber}) where photoid = ${photoID}`)
+        await this.db.execute(sql`update photos set people = array_append(people, ${phoneNumber}) where photoid = ${photoID} and not ${phoneNumber} = any (people)`)
     }
 
     public getUsersPhoto = async (phoneNumber: string) => {
