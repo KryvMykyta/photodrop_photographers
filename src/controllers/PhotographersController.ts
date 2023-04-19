@@ -9,10 +9,7 @@ import { PhotoRepository } from "./../repositories/PhotoRepository";
 import { UtilsClasses } from "app";
 import { S3Repository } from "../S3/S3Repository";
 import { PhotoEditor } from "utils/PhotoEditor";
-
-type Images = {
-  base64image: string;
-}[];
+import { PresignedPost } from "aws-sdk/clients/s3";
 
 interface IResponsePhotos extends PhotosType {
   url: string;
@@ -53,9 +50,9 @@ export class PhotographersController {
       this.addPhotoToAlbum
     );
     this.router.post(
-      "/addUser",
+      "/addUsers",
       this.authMiddleware.isAuthorized,
-      this.addUserToPhoto
+      this.addUsersToPhoto
     );
 
     this.router.get(
@@ -173,7 +170,7 @@ export class PhotographersController {
 
   public addPhotoToAlbum = async (
     req: Request<
-      {},
+      {}, 
       {},
       { login: string; imageNames: string[] },
       { albumID: string}
@@ -190,17 +187,7 @@ export class PhotographersController {
       if (!isUsersAlbum) {
         throw new ErrorGenerator(403, "Forbidden");
       }
-      // await Promise.all(
-      //   images.map(async (img) => {
-      //     const photoKey = `${uuidv4()}`;
-      //     const {photos, type} = await this.photoEditor.createPackToLoad(img.base64image)
-      //     for (const photo of photos) {
-      //       await this.s3Repository.loadPhoto(`${photoKey}${photo.keyAdd}`,photo.buffer, type)
-      //     }
-      //     await this.photoRepository.addPhotoToAlbum(albumID, `${photoKey}.${type}`, login);
-      //   })
-      // );
-      const urls: {}[] = [];
+      const urls: PresignedPost[] = [];
       imageNames.forEach((imagename) => {
         const type = imagename.split(".")[1];
         const photoKey = `original/${login}/${albumID}/${uuidv4()}.${type}`;
@@ -216,18 +203,18 @@ export class PhotographersController {
     }
   };
 
-  public addUserToPhoto = async (
+  public addUsersToPhoto = async (
     req: Request<
       {},
       {},
-      { login: string },
-      { photoID: string; phoneNumber: string }
+      { login: string, phones: string[] },
+      { photoID: string }
     >,
     res: Response
   ) => {
     try {
-      const { login } = req.body;
-      const { photoID, phoneNumber } = req.query;
+      const { login, phones } = req.body;
+      const { photoID } = req.query;
       const photoData = await this.photoRepository.getPhoto(
         login,
         photoID
@@ -235,7 +222,7 @@ export class PhotographersController {
       if (!photoData) {
         throw new ErrorGenerator(403, "Forbidden");
       }
-      await this.photoRepository.addUserToPhoto(photoID, phoneNumber);
+      await this.photoRepository.addUsersToPhoto(photoID, phones);
       return res.status(200).send("Successfully added user to photo");
     } catch (err) {
       console.log(err);

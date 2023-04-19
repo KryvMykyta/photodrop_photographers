@@ -8,4 +8,10 @@ export const photos = pgTable("photos", {
   photographerLogin: text('photographerlogin').notNull()
 });
 
+export const usersPhotos = pgTable("userphotos", {
+  photoID: text("photoid").notNull(),
+  phone: text("phone").notNull()
+})
+
 export type PhotosType = InferModel<typeof photos>;
+

@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import { eq, and} from "drizzle-orm/expressions";
 import { v4 as uuidv4 } from 'uuid';
 import { sql } from "drizzle-orm";
-import { photos } from "./../schemas/photoSchema";
+import { photos, usersPhotos } from "./../schemas/photoSchema";
 
 
 export class PhotoRepository {
@@ -27,8 +27,14 @@ export class PhotoRepository {
         return photo
     }
 
-    public addUserToPhoto = async (photoID: string, phoneNumber: string) => {
-        await this.db.execute(sql`update photos set people = array_append(people, ${phoneNumber}) where photoid = ${photoID} and not ${phoneNumber} = any (people)`)
+    public addUsersToPhoto = async (photoID: string, users: string[]) => {
+        const arrayToLoad = users.map((user) => {
+            return {
+                photoID,
+                phone: user
+            }
+        })
+        await this.db.insert(usersPhotos).values(arrayToLoad)
     }
 
     public getUsersPhoto = async (phoneNumber: string) => {
