@@ -42,6 +42,7 @@ const params = {
 
 const main =async () => {
     // console.log(await S3Instance.getObject(params).promise())
-    await photosRepository.addUsersToPhoto("e9938f22-7dd8-4cfd-a128-c03868e71ea1.jpg", ["123","456"])
+    // await photosRepository.addUsersToPhoto("e9938f22-7dd8-4cfd-a128-c03868e71ea1.jpg", ["123","456"])
+    console.log(s3Repository.getPresignedPost("popa.png"))
 }
 main()

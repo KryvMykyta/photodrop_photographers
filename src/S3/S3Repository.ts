@@ -36,10 +36,11 @@ export class S3Repository {
       Bucket: this.bucketName,
       Key: photoKey,
       Expires: 300,
-      Conditions: [["content-length-range", 0, 10 * 1024 * 1024]],
+      Conditions: [["content-length-range", 0, 10 * 1024 * 1024], [ "eq", "$Content-Disposition", "attachment" ]],
       Fields: {
         acl: 'bucket-owner-full-control',
-        key: photoKey
+        key: photoKey,
+        "Content-Disposition": "attachment"
       },
     }
     return this.S3Instance.createPresignedPost(params)
